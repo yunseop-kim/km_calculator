@@ -7,7 +7,7 @@
           / {{priceTotal}}
         </div>
         <div class="col">
-          <q-table title="견적" :data="data" :columns="columns"></q-table>
+          <q-table title="다음과 같이 견적합니다." :data="data" :columns="columns"></q-table>
         </div>
       </div>
     </q-page>
@@ -31,7 +31,7 @@
           <div class="row items-start">
             <q-select
               v-model="additionalElementType"
-              :options="additionalOptions"
+              :options="additionalOptions.map(option => option.name)"
               label="추가 입력"
               style="width: 300px"
             />
@@ -72,6 +72,12 @@
 <script>
 export default {
   name: "PageIndex",
+  watch: {
+    additionalElementType (prev, curr) {
+      this.subItemQuantity = 1;
+      this.subItemUnitPrice = this.additionalOptions.find((item) => item.name === prev).price;
+    }
+  },
   data () {
     return {
       confirm: false,
@@ -88,8 +94,6 @@ export default {
       unitPrice: null,
       subItemUnitPrice: null,
       options: [
-        "규격 있는",
-        "규격 없는",
         "상고정판(고정설치판)",
         "히터판보조판(받침판)",
         "상원판",
@@ -98,16 +102,20 @@ export default {
         "다리2",
         "상밀판",
         "하밀판",
-        "하고정판"
+        "하고정판",
+        "네고"
       ],
       additionalOptions: [
-        "아이볼트",
-        "포켓가공",
-        "NC가공",
-        "추가가공",
-        "수정가공",
-        "기준면(2면)",
-        "기준면(4면)"
+        { name: "E/B M12", price: 10000 },
+        { name: "E/B M24", price: 20000 },
+        { name: "E/B M30", price: 25000 },
+        { name: "E/B M64", price: 45000 },
+        { name: "포켓가공", price: null },
+        { name: "NC가공", price: null },
+        { name: "추가가공", price: null },
+        { name: "수정가공", price: null },
+        { name: "기준면(2면)", price: null },
+        { name: "기준면(4면)", price: null }
       ],
       columns: [
         { name: "품명", align: "center", label: "품명", field: "name" },
@@ -140,12 +148,19 @@ export default {
   },
   computed: {
     priceTotal () {
-      return this.data.reduce((prev, curr) => (prev + curr.price), 0);
+      return this.data.reduce((prev, curr) => prev + curr.price, 0);
     }
   },
   methods: {
     addItem () {
-      const fourSideArea = this.w * this.l * 2 * this.t * 0.01 * this.quantity;
+      if (this.elementType === "네고") {
+        this.data.push({
+          name: this.elementType,
+          price: this.unitPrice * -1
+        });
+        return;
+      }
+      const fourSideArea = (this.w + this.l) * 2 * this.t * 0.01 * this.quantity;
       const twoSideArea = this.w * this.l * 2 * 0.01 * this.quantity;
       const sixSideArea = fourSideArea + twoSideArea;
       // const weight = this.t * this.w * this.l * 0.00000785 * this.quantity;
@@ -165,6 +180,18 @@ export default {
         unitPrice: this.unitPrice,
         price: sixSideArea * this.unitPrice
       });
+      if (this.showBottomProcess) {
+        this.data.push({
+          name: "",
+          specification: "",
+          quantity: "",
+          processingHistory: "연마",
+          area: twoSideArea,
+          weight: "",
+          unitPrice: 5,
+          price: twoSideArea * 5
+        });
+      }
       if (this.showWeight) {
         this.data.push({
           name: "소재비",

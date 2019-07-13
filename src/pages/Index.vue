@@ -24,9 +24,14 @@
             <q-input v-model.number="quantity" type="number" label="수량" style="width: 100px" />
             <q-input v-model.number="unitPrice" type="number" label="단가" style="width: 100px" />
           </div>
-          <div class="row items-start">
+          <!-- <div class="row items-start">
             <q-checkbox v-model="showWeight" label="소재 무게 표시" />
-            <q-checkbox v-model="showBottomProcess" label="바닥면 정삭 표시" />
+          </div> -->
+          <div class="row items-start items-center">
+            <q-radio v-model="showBottomProcess" val="grinding" label="연마" />
+            <q-radio v-model="showBottomProcess" val="finishing" label="면정삭" />
+            <q-radio v-model="showBottomProcess" :val="null" label="선택안함" />
+            <q-input v-if="showBottomProcess" v-model.number="bottomPrice" type="number" label="단가" style="margin-left: 20px; width: 100px" />
           </div>
           <div class="row items-start">
             <q-select
@@ -75,7 +80,9 @@ export default {
   watch: {
     additionalElementType (prev, curr) {
       this.subItemQuantity = 1;
-      this.subItemUnitPrice = this.additionalOptions.find((item) => item.name === prev).price;
+      this.subItemUnitPrice = this.additionalOptions.find(
+        item => item.name === prev
+      ).price;
     }
   },
   data () {
@@ -87,11 +94,12 @@ export default {
       w: null,
       l: null,
       showWeight: false,
-      showBottomProcess: false,
+      showBottomProcess: null,
       negotiation: null,
       quantity: null,
       subItemQuantity: null,
       unitPrice: null,
+      bottomPrice: 5,
       subItemUnitPrice: null,
       options: [
         "상고정판(고정설치판)",
@@ -160,7 +168,8 @@ export default {
         });
         return;
       }
-      const fourSideArea = (this.w + this.l) * 2 * this.t * 0.01 * this.quantity;
+      const fourSideArea =
+        (this.w + this.l) * 2 * this.t * 0.01 * this.quantity;
       const twoSideArea = this.w * this.l * 2 * 0.01 * this.quantity;
       const sixSideArea = fourSideArea + twoSideArea;
       // const weight = this.t * this.w * this.l * 0.00000785 * this.quantity;
@@ -185,10 +194,10 @@ export default {
           name: "",
           specification: "",
           quantity: "",
-          processingHistory: "연마",
+          processingHistory: this.showBottomProcess === "grinding" ? "연마" : "면정삭",
           area: twoSideArea,
           weight: "",
-          unitPrice: 5,
+          unitPrice: this.bottomPrice,
           price: twoSideArea * 5
         });
       }

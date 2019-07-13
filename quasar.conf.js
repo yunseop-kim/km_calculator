@@ -49,7 +49,8 @@ module.exports = function (ctx) {
         'QCardActions',
         'QSelect',
         'QInput',
-        'QCheckbox'
+        'QCheckbox',
+        'QRadio'
       ],
 
       directives: ['Ripple', 'ClosePopup'],

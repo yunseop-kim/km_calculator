@@ -24,14 +24,20 @@
             <q-input v-model.number="quantity" type="number" label="수량" style="width: 100px" />
             <q-input v-model.number="unitPrice" type="number" label="단가" style="width: 100px" />
           </div>
-          <!-- <div class="row items-start">
+          <div class="row items-start">
             <q-checkbox v-model="showWeight" label="소재 무게 표시" />
-          </div> -->
+          </div>
           <div class="row items-start items-center">
             <q-radio v-model="showBottomProcess" val="grinding" label="연마" />
             <q-radio v-model="showBottomProcess" val="finishing" label="면정삭" />
             <q-radio v-model="showBottomProcess" :val="null" label="선택안함" />
-            <q-input v-if="showBottomProcess" v-model.number="bottomPrice" type="number" label="단가" style="margin-left: 20px; width: 100px" />
+            <q-input
+              v-if="showBottomProcess"
+              v-model.number="bottomPrice"
+              type="number"
+              label="단가"
+              style="margin-left: 20px; width: 100px"
+            />
           </div>
           <div class="row items-start">
             <q-select
@@ -54,6 +60,27 @@
             />
             <q-btn flat label="추가" @click="addSubItem" color="primary" />
           </div>
+          <!-- <div class="row items-start">
+            <q-select
+              v-model="additionalElementType"
+              :options="additionalOptions2.map(option => option.name)"
+              label="소재 추가"
+              style="width: 300px"
+            />
+            <q-input
+              v-model.number="subItemQuantity"
+              type="number"
+              label="수량"
+              style="width: 100px"
+            />
+            <q-input
+              v-model.number="subItemUnitPrice"
+              type="number"
+              label="단가"
+              style="width: 100px"
+            />
+            <q-btn flat label="추가" @click="addSubItem" color="primary" />
+          </div> -->
           <ul>
             <li
               v-for="(item, index) in additionalData"
@@ -114,17 +141,44 @@ export default {
         "네고"
       ],
       additionalOptions: [
-        { name: "E/B M12", price: 10000 },
-        { name: "E/B M24", price: 20000 },
-        { name: "E/B M30", price: 25000 },
-        { name: "E/B M64", price: 45000 },
         { name: "포켓가공", price: null },
         { name: "NC가공", price: null },
         { name: "추가가공", price: null },
         { name: "수정가공", price: null },
         { name: "기준면(2면)", price: null },
-        { name: "기준면(4면)", price: null }
+        { name: "기준면(4면)", price: null },
+        { name: "직접 선택", price: 0 },
+        { name: "E/B M100", price: 120000 },
+        { name: "E/B M80", price: 80000 },
+        { name: "E/B M64", price: 45000 },
+        { name: "E/B M58", price: 55000 },
+        { name: "E/B M56", price: 50000 },
+        { name: "E/B M48", price: 40000 },
+        { name: "E/B M42", price: 35000 },
+        { name: "E/B M36", price: 30000 },
+        { name: "E/B M30", price: 25000 },
+        { name: "E/B M24", price: 20000 },
+        { name: "E/B M20", price: 15000 },
+        { name: "2 1/2", price: 60000 },
+        { name: "2", price: 50000 },
+        { name: "1 3/4", price: 45000 },
+        { name: "1 1/2", price: 40000 },
+        { name: "1 3/8", price: 35000 },
+        { name: "1 1/4", price: 30000 },
+        { name: "1 1/8", price: 30000 },
+        { name: "1", price: 25000 },
+        { name: "7/8", price: 25000 },
+        { name: "3/4", price: 20000 },
+        { name: "5/8", price: 20000 },
+        { name: "1/2", price: 15000 },
+        { name: "3/8 이하", price: 10000 },
+        { name: "TAP M24", price: 20000 },
+        { name: "TAP M20", price: 15000 },
+        { name: "TAP M16", price: 10000 },
+        { name: "TAP M14 이하", price: 8000 }
       ],
+      // additionalOptions2: [
+      // ],
       columns: [
         { name: "품명", align: "center", label: "품명", field: "name" },
         {
@@ -157,6 +211,15 @@ export default {
   computed: {
     priceTotal () {
       return this.data.reduce((prev, curr) => prev + curr.price, 0);
+    },
+    sojaeWeight () {
+      const result =
+        (this.t + 10) *
+        (this.w + 10) *
+        (this.l + 10) *
+        0.00000785 *
+        this.quantity;
+      return Math.round(result * 2) / 2;
     }
   },
   methods: {
@@ -172,19 +235,13 @@ export default {
         (this.w + this.l) * 2 * this.t * 0.01 * this.quantity;
       const twoSideArea = this.w * this.l * 2 * 0.01 * this.quantity;
       const sixSideArea = fourSideArea + twoSideArea;
-      // const weight = this.t * this.w * this.l * 0.00000785 * this.quantity;
-      const sojaeWeight =
-        (this.t + 10) *
-        (this.w + 10) *
-        (this.l + 10) *
-        0.00000785 *
-        this.quantity;
+      // const weight = this.t * this.w * this.l * 0.00000785 * this.quantity
       this.data.push({
         name: this.elementType,
         specification: `${this.t} * ${this.w} * ${this.l}`,
         quantity: this.quantity,
         processingHistory: "6면삭",
-        area: sixSideArea,
+        area: sixSideArea + "cm²",
         weight: "",
         unitPrice: this.unitPrice,
         price: sixSideArea * this.unitPrice
@@ -194,8 +251,9 @@ export default {
           name: "",
           specification: "",
           quantity: "",
-          processingHistory: this.showBottomProcess === "grinding" ? "연마" : "면정삭",
-          area: twoSideArea,
+          processingHistory:
+            this.showBottomProcess === "grinding" ? "연마" : "면정삭",
+          area: twoSideArea + "cm²",
           weight: "",
           unitPrice: this.bottomPrice,
           price: twoSideArea * 5
@@ -208,9 +266,9 @@ export default {
           quantity: this.quantity,
           processingHistory: "",
           area: "",
-          weight: sojaeWeight,
+          weight: this.sojaeWeight,
           unitPrice: 1070,
-          price: sojaeWeight * 1070
+          price: this.sojaeWeight * 1070
         });
       }
       if (this.additionalData.length > 0) {

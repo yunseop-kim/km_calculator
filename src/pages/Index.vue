@@ -142,11 +142,12 @@ export default {
       ],
       additionalOptions: [
         { name: "포켓가공", price: null },
+        { name: "바닥면", price: null }, // TODO: 바닥면은 w * l
+        { name: "기준면(2면)", price: null },
+        { name: "기준면(4면)", price: null },
         { name: "NC가공", price: null },
         { name: "추가가공", price: null },
         { name: "수정가공", price: null },
-        { name: "기준면(2면)", price: null },
-        { name: "기준면(4면)", price: null },
         { name: "직접 선택", price: 0 },
         { name: "E/B M100", price: 120000 },
         { name: "E/B M80", price: 80000 },
